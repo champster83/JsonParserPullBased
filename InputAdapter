@@ -1,0 +1,4 @@
+public interface InputAdapter {
+    char GetNextCharacter();
+    char PeekNextCharacter();
+}
