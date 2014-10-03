@@ -1,0 +1,154 @@
+import java.util.ArrayList; 
+import java.util.HashMap;
+import java.util.List;
+
+public class JsonParser {
+    private InputAdapter input ;
+    public JsonParser(InputAdapter iAdapter)
+    {
+        input = iAdapter;
+    }
+    
+    public Object parse() throws Exception 
+    {
+        skipSpace();
+        char c = input.PeekNextCharacter();
+        if(c == '[')
+            return readList();
+        if(c == '{')
+            return readDictionary();
+        else
+            throw new Exception("Invalid Json: must begin with '{' or '['");
+    }  
+    
+    public Object readObject() throws Exception
+    {
+        skipSpace();
+        char c = input.PeekNextCharacter();
+        if(c == '[')
+            return readList();
+        if(c == '{')
+            return readDictionary();
+        if(c == '\"')
+            return readString();
+        if(Character.isDigit(c))
+            return readDigit();
+        if(c == 't')
+            return readKeyword("true");
+        if(c == 'f')
+            return readKeyword("false");
+        if(c == 'n')
+            return readKeyword("null");
+        else
+            throw new Exception("Invalid Json: invalid object");
+    }
+    
+    public Object readKeyword(String target) throws Exception
+    {
+        char c = input.PeekNextCharacter();
+        int index =0;
+        while(c != '\0' && index < target.length())
+        {
+            c = input.GetNextCharacter();
+            if(c != target.charAt(index))
+                throw new Exception("Invalid Json: Expecting the keyword, " + target);
+            index++;
+            c = input.PeekNextCharacter();
+        }
+        return target;
+    }
+    
+    public Object readString() throws Exception
+    {
+        if(input.GetNextCharacter() != '"')
+            throw new Exception("Invalid Json: Expecting double quote");
+        
+        StringBuilder str = new StringBuilder();
+        char c = input.GetNextCharacter(); 
+        while( c != '"')
+        {
+            str.append(c);
+            c = input.GetNextCharacter(); 
+        }
+        return str.toString();
+    }
+    
+    public Object readDigit() throws Exception
+    {
+        skipSpace();
+        int digit = 0, d = input.PeekNextCharacter();
+        while(Character.isDigit(d))
+        {
+            d = input.GetNextCharacter();
+            digit = digit * 10 + (d -'0');
+            d = input.PeekNextCharacter();
+        }
+        return digit;
+    }
+    
+    public void skipSpace()
+    {
+        char c = input.PeekNextCharacter();
+        while( c == ' ' || c == '\n' || c == '\t' || c == '\r')
+            input.GetNextCharacter();
+    }
+    
+    public Object readList() throws Exception
+    {
+        if(input.GetNextCharacter() != '[')
+            throw new Exception("Invalid Json: invalid List start");
+        List<Object> list = readListObject();
+        skipSpace();
+        if(input.GetNextCharacter() != ']')
+            throw new Exception("Invalid Json: invalid List end");
+        return list;
+    }
+    
+    public List<Object> readListObject() throws Exception
+    {
+        List<Object> list = new ArrayList<Object>();
+        char comma = '\0';
+        do{
+            if(comma == ',')
+                input.GetNextCharacter();
+            list.add(readObject());
+            skipSpace();
+            comma = input.PeekNextCharacter();
+        }while(comma == ',');
+        return list;
+    }
+    
+    public Object readDictionary() throws Exception
+    {
+        if(input.GetNextCharacter() != '{')
+            throw new Exception("Invalid Json: invalid dictionary start");
+        
+        HashMap<String,Object> map = readKeyValueList();
+        skipSpace();
+        if(input.GetNextCharacter() != '}')  
+            throw new Exception("Invalid Json: invalid dictionary end");
+
+        return map;
+    }  
+    
+    public HashMap<String,Object> readKeyValueList() throws Exception
+    {
+        String key = null;
+        Object value = null;
+        char comma = '\0';
+        HashMap<String,Object> map = new HashMap<String,Object>();
+        do{
+            if(comma == ',')
+                comma = input.GetNextCharacter();
+            key = readObject().toString();
+            skipSpace();
+            if(input.GetNextCharacter() != ':')
+                throw new Exception("Invalid Json: Expecting a colon");
+            value = readObject();
+            map.put(key,value);
+            skipSpace();
+            comma = input.PeekNextCharacter();
+        }while(comma == ',');
+        return map;
+    }
+}
