@@ -1,0 +1,40 @@
+import java.io.*;
+
+public class InputStreamAdapter implements InputAdapter {
+    InputStreamReader input;
+    char buffer;
+    public InputStreamAdapter(InputStreamReader inputStream)
+    {
+        input = inputStream;
+        buffer = '\0';
+    }
+    
+    public char GetNextCharacter()
+    {
+        char c = '\0';
+        if(buffer != '\0')
+        {
+            c = buffer;
+            buffer = '\0';
+        }
+        else{
+            try{
+                c = (char)input.read();
+            }
+            catch(Exception e)
+            {
+
+            }
+        }
+        return c;    
+    }
+    
+    public char PeekNextCharacter()
+    {
+        if(buffer == '\0')
+        {
+            buffer = GetNextCharacter();
+        }
+        return buffer;
+    }
+}
