@@ -1,0 +1,32 @@
+public class InputStringAdapter implements InputAdapter
+{
+    String input;
+    int index;
+    public InputStringAdapter(String inputStr)
+    {
+        input = inputStr;
+        index =0;
+    }
+    
+    public boolean HasReachedEnd()
+    {
+        return index >= input.length();
+    }
+    
+    public char GetNextCharacter()
+    {
+        if(HasReachedEnd())
+            return '\0';
+        char c = input.charAt(index);
+        index++;
+        return c;
+    }
+    
+    public char PeekNextCharacter()
+    {
+        if(HasReachedEnd())
+            return '\0';
+        char c = input.charAt(index);
+        return c;
+    }
+}
